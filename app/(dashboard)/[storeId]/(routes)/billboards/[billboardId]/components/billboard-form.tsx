@@ -20,7 +20,6 @@ import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { useOrigin } from "@/hooks/use-origin";
 import * as z from "zod";
 import ImageUpload from "@/components/ui/image-upload";
 
@@ -59,9 +58,17 @@ const BillboardForm: React.FC<BillboardFormProps> = ({ initialData }) => {
   const onSubmit = async (data: BillboardFormValues) => {
     try {
       setLoading(true);
-      await axios.patch(`/api/stores/${params.storeId}`, data);
+      if (initialData) {
+        await axios.patch(
+          `/api/${params.storeId}/billboards/${params.billboardId}`,
+          data
+        );
+      } else {
+        await axios.post(`/api/${params.storeId}/billboards`, data);
+      }
       router.refresh();
-      toast.success("store updated");
+      router.push(`/${params.storeId}/billboards`);
+      toast.success(toastMessage);
     } catch (error) {
       toast.error("something went wrong.");
       console.log(error);
@@ -73,12 +80,16 @@ const BillboardForm: React.FC<BillboardFormProps> = ({ initialData }) => {
   const onDelete = async () => {
     try {
       setLoading(true);
-      await axios.delete(`/api/stores/${params.storeId}`);
+      await axios.delete(
+        `/api/${params.storeId}/billboards/${params.billboardId}`
+      );
       router.refresh();
       router.push("/");
-      toast.success("store deleted.");
+      toast.success("Billboard deleted.");
     } catch (error) {
-      toast.error("make sure you removed all product and categories first");
+      toast.error(
+        "make sure you removed all the categories using this billboard first"
+      );
     } finally {
       setLoading(false);
       setOpen(false);
